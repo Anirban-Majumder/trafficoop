@@ -1,5 +1,5 @@
-#ifndef TRAFFICCOP_ACTIONS_H
-#define TRAFFICCOP_ACTIONS_H
+#ifndef TRAFFICOOP_ACTIONS_H
+#define TRAFFICOOP_ACTIONS_H
 static __always_inline int finish(struct tc_counters *c, int verdict)
 {
     if (c) {

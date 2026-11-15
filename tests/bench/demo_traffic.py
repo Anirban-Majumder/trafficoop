@@ -1,6 +1,6 @@
 """Synthetic illustration, only usable inside demo.sh's private netns.
 
-sudo nsenter --net=/run/netns/trafficcop-demo python3 tests/bench/demo_traffic.py
+sudo nsenter --net=/run/netns/trafficoop-demo python3 tests/bench/demo_traffic.py
 """
 import fcntl
 import ipaddress

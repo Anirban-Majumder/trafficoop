@@ -21,7 +21,7 @@ replacement = root / 'reload.rules'
 
 def cli(*args, ok=True):
     start = time.monotonic()
-    r = subprocess.run(['./trafficcop', *map(str, args)], capture_output=True, text=True, timeout=1)
+    r = subprocess.run(['./trafficoop', *map(str, args)], capture_output=True, text=True, timeout=1)
     elapsed = time.monotonic() - start
     assert elapsed < 1, (args, elapsed)
     if ok:

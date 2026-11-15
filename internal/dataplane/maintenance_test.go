@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"github.com/cilium/ebpf"
 )
 
@@ -75,7 +75,7 @@ func TestKernelSustainedActivePressure(t *testing.T) {
 						}
 						frame := ipv6(fmt.Sprintf("fd01:%x::%x:%x", worker, i>>16, i&65535), 17, udp(1))
 						before := time.Now()
-						v, _, err := c.Programs["trafficcop"].Test(frame)
+						v, _, err := c.Programs["trafficoop"].Test(frame)
 						elapsed := time.Since(before)
 						if err != nil || v != drop {
 							t.Errorf("pressure verdict=%d err=%v", v, err)
@@ -375,7 +375,7 @@ func TestKernelConcurrentAsyncReclamation(t *testing.T) {
 					defer wg.Done()
 					for i := 0; i < 100; i++ {
 						frame := ipv6(fmt.Sprintf("fd01::%x", worker*100+i+1), 17, udp(1))
-						v, _, err := c.Programs["trafficcop"].Test(frame)
+						v, _, err := c.Programs["trafficoop"].Test(frame)
 						if err != nil {
 							t.Error(err)
 							return

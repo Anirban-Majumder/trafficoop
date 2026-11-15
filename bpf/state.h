@@ -1,5 +1,5 @@
-#ifndef TRAFFICCOP_STATE_H
-#define TRAFFICCOP_STATE_H
+#ifndef TRAFFICOOP_STATE_H
+#define TRAFFICOOP_STATE_H
 #define NS_PER_SECOND 1000000000ULL
 
 /* Readers may hold an RCU-protected value pointer after deletion. Mark an

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"github.com/cilium/ebpf"
 )
 

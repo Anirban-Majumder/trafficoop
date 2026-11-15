@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/config"
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/config"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/asm"
 )
@@ -187,7 +187,7 @@ func TestKernelProductionReloadPreparation(t *testing.T) {
 			runPacket(t, c, ipv4("10.0.0.7", 17, 0, 5, udp(10)), pass)
 			runPacket(t, c, ipv4("10.0.0.7", 17, 0, 5, udp(11)), drop)
 		}
-		if info, err := c.Programs["trafficcop"].Info(); err == nil {
+		if info, err := c.Programs["trafficoop"].Info(); err == nil {
 			verified, _ := info.VerifiedInstructions()
 			t.Logf("verified instructions: %d", verified)
 		}
@@ -228,7 +228,7 @@ func TestKernelFailedCandidateJoinsAllocators(t *testing.T) {
 	}
 	// Reject the candidate while its 63 independent private maps are being
 	// allocated. A failed preparation must join workers and close every map.
-	p.spec.Programs["trafficcop"].Instructions = asm.Instructions{asm.Mov.Imm(asm.R0, 0)}
+	p.spec.Programs["trafficoop"].Instructions = asm.Instructions{asm.Mov.Imm(asm.R0, 0)}
 	before, err := os.ReadDir("/proc/self/fd")
 	if err != nil {
 		t.Fatal(err)

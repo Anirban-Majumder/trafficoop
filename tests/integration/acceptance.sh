@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../.."
 mode=${1:---require-target}
 [[ $mode == --require-target || $mode == --local ]] || { echo 'usage: acceptance.sh [--require-target|--local]' >&2; exit 1; }
 [[ $EUID == 0 ]] || { echo 'run with sudo, preserving Go in PATH' >&2; exit 1; }
-[[ ! -S /run/trafficcop/control.sock ]] || { echo 'trafficcop running; refusing acceptance suite' >&2; exit 1; }
+[[ ! -S /run/trafficoop/control.sock ]] || { echo 'trafficoop running; refusing acceptance suite' >&2; exit 1; }
 if [[ $mode == --require-target ]]; then
     . /etc/os-release
     kernel=$(uname -r)

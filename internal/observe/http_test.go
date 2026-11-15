@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 )
 
 type httpTelemetry struct{ fail bool }

@@ -12,7 +12,7 @@ func TestObjectContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.Programs["trafficcop"] == nil {
+	if s.Programs["trafficoop"] == nil {
 		t.Fatal("entry point missing")
 	}
 	m := s.Maps["counters"]

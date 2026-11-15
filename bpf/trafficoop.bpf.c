@@ -73,7 +73,7 @@ const volatile __u32 enabled_matches = ~0U;
 #include "state.h"
 #include "actions.h"
 
-SEC("xdp") int trafficcop(struct xdp_md *ctx)
+SEC("xdp") int trafficoop(struct xdp_md *ctx)
 {
     __u32 zero = 0;
     struct tc_counters *c = bpf_map_lookup_elem(&counters, &zero);

@@ -1,4 +1,4 @@
-module github.com/TANKominator5/BytecodeBouncer
+module github.com/Anirban-Majumder/trafficoop
 
 go 1.22.0
 

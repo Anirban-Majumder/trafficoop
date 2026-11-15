@@ -1,5 +1,5 @@
-/trafficcop
-/internal/dataplane/trafficcop.bpf.o
+/trafficoop
+/internal/dataplane/trafficoop.bpf.o
 *.log
 __pycache__/
 *.pyc

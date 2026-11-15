@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
-	"github.com/TANKominator5/BytecodeBouncer/internal/observe"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/observe"
 	"github.com/cilium/ebpf"
 	"golang.org/x/sys/unix"
 )

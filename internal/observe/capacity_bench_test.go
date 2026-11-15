@@ -8,7 +8,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 )
 
 func denseJails(n int) contract.JailState {

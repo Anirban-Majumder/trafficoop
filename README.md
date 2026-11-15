@@ -1,14 +1,45 @@
-# BytecodeBouncer / trafficcop
+# trafficoop
 
-Hackathon eBPF/XDP firewall for the Bytecode Bouncer problem. The kernel, complete
-rules/CLI, atomic reload, telemetry and dashboard are integrated. Local checks
-run on Ubuntu 24.04 / WSL Linux 6.18; **the judges' Linux 6.8 validation and final
-flood benchmark remain open**. Deadline: 13 November 2026, 11:59 p.m. IST.
+[![CI](https://github.com/Anirban-Majumder/trafficoop/actions/workflows/checks.yml/badge.svg)](https://github.com/Anirban-Majumder/trafficoop/actions/workflows/checks.yml)
 
-Read [problem statement](problem_Statement.md), [architecture](architecture.md),
-[contributor instructions](AGENTS.md), and [implementation checklist](docs/spec-checklist.md).
+A single-binary XDP/eBPF firewall. Every packet verdict — parsing, first-match
+rules, address sets, per-source rate limits, port-scan jails, counters and
+events — happens in XDP, in C, right at the driver. Go (with cilium/ebpf)
+handles configuration, atomic reloads, IPC and telemetry, and serves an
+embedded dashboard. No iptables, no nftables, no tc.
 
-## Build
+![trafficoop dashboard running the live demo](demo.png)
+
+I started this because I wanted to actually understand XDP: what a packet
+verdict looks like when you write it yourself in C, how to swap a live program
+under traffic without dropping a frame, and what the honest numbers are once
+you measure instead of guess. It turned into a complete firewall with a
+daemon, a CLI and an operations-console dashboard, and it taught me more about
+the kernel than any tutorial I've read.
+
+## Features
+
+- **All verdicts in XDP** — bounded, verifier-safe C parses 802.1Q tags,
+  IPv4 options and bounded IPv6 extension chains, then applies first-match
+  policy. Go never decides a packet.
+- **Atomic reloads** — each reload builds a complete, immutable policy
+  generation, freezes a private config map and updates the existing
+  `bpf_link` in place. A failed candidate closes its own resources; the old
+  program keeps serving traffic the whole time.
+- **Jails and port-scan detection** — offending sources get timed out in a
+  kernel state map; scan-window thresholds survive reloads and contention.
+- **Per-rule rate limits** — independent 65,536-source LRU maps per rule,
+  shared across CPUs, with off-packet reclamation of expired state.
+- **Live address sets** — `set add`/`set del` operate directly on BPF maps,
+  without rewriting the rules file or resetting counters.
+- **One honest telemetry path** — the CLI and `/stats.json`, `/jail.json`,
+  `/log.json` share one typed snapshot implementation, so the dashboard shows
+  exactly what the CLI shows. `/health.json` reports allocation/ring/stream
+  failures separately.
+- **Embedded dashboard** — a dark, hairline-framed operations console with a
+  locally bundled pixel font, embedded in the binary, no external assets.
+
+## Quickstart
 
 On Ubuntu 24.04 with root/sudo and network access:
 
@@ -16,108 +47,84 @@ On Ubuntu 24.04 with root/sudo and network access:
 ./build.sh --install-deps
 ```
 
-The script installs clang, llvm, libbpf-dev, linux-libc-dev, gcc, make, golang-go,
-iproute2, python3, ca-certificates and git, then compiles `./trafficcop`.
-Go 1.22+ is required. Go dependencies are pinned in go.mod/go.sum. Subsequent
-builds use `./build.sh`. The daemon needs root, BPF/network-admin capabilities,
-and a kernel with native XDP/bpf_link support. No CGO or external object file is
-needed at runtime. Native XDP is required; there is no silent generic-mode fallback.
+The script installs clang, llvm, libbpf-dev, linux-libc-dev, gcc, make,
+golang-go, iproute2, python3, ca-certificates and git, then compiles
+`./trafficoop`. Go 1.22+ is required; dependencies are pinned in
+go.mod/go.sum. Subsequent builds use `./build.sh`. The daemon needs root,
+BPF/network-admin capabilities, and a kernel with native XDP/`bpf_link`
+support — there is no silent generic-mode fallback. No CGO or external object
+file is needed at runtime: cilium/ebpf loads the embedded BPF object, and
+libbpf is only a build-time header dependency. Development target: x86-64
+Ubuntu 24.04 / Linux 6.8, four CPUs.
 
-The Go cilium/ebpf library loads the BPF object; libbpf is used only for its C
-headers at build time. The target is x86-64 Ubuntu 24.04/Linux 6.8, four CPUs.
-
-## Run safely
-
-```sh
-make test
-make integration
-make stress
-make endurance  # separate five-minute reload/set/maximum-policy resource check
-make throughput # separate four-CPU private-veth flood; not physical-NIC line rate
-# Full-map CLI deadline check (currently exposes a million-entry jail timeout):
-make capacity
-```
-
-The full-capacity CLI optimization and Linux 6.8 VM component measurements are
-documented in [CLI performance validation](docs/cli-performance-validation.md).
-Restart the daemon after upgrading: private IPC framing changed; public JSON did not.
-
-Integration/stress tests create private namespaces/veths and attempt cleanup on
-every exit. They refuse an existing daemon. No tests replace a host attachment.
-Do not deploy on a production interface without target-platform verification.
-
-For a persistent demo, the setup script creates its own namespace and veth pair:
+The easiest way to see it work is the self-contained demo, which creates its
+own namespace and veth pair:
 
 ```sh
 sudo ./demo.sh start
-sudo ./demo.sh stats
-sudo ./demo.sh dashboard
+sudo ./demo.sh dashboard   # then open http://127.0.0.1:8088/
 ```
 
-The last command runs a foreground localhost proxy. Open **http://127.0.0.1:8088/**
-in your normal browser. Ctrl+C stops the proxy; the demo remains running.
-The proxy uses Python's standard library and forwards live telemetry JSON into
-the namespace. It fails if host port 8088 is busy. Dashboard HTML, CSS,
-JavaScript, and fonts are read directly from `internal/observe/web/`, so
-frontend edits appear on a browser refresh without rebuilding or restarting the
-demo; restart the proxy only if `tests/bench/dashboard_proxy.py` changes.
-Go or BPF changes still require `./build.sh` and a demo restart.
-The demo loads `tests/fixtures/demo.rules`. To generate illustrated traffic:
+The dashboard proxy is a foreground localhost process (Python stdlib) that
+forwards live telemetry JSON into the namespace; Ctrl+C stops the proxy but
+leaves the demo running. Frontend edits in `internal/observe/web/` appear on a
+browser refresh without rebuilding; Go or BPF changes still require
+`./build.sh` and a demo restart. Generate illustrated traffic with:
 
 ```sh
-sudo nsenter --net=/run/netns/trafficcop-demo python3 tests/bench/demo_traffic.py
+sudo nsenter --net=/run/netns/trafficoop-demo python3 tests/bench/demo_traffic.py
 ```
 
-When finished:
+When finished, `sudo ./demo.sh stop` removes the owned namespace and stops its
+daemon. Repeated stop is harmless; failed startup rolls back everything it
+created.
 
-```sh
-sudo ./demo.sh stop
-```
+## Architecture
 
-Stop removes the owned namespace and stops its trafficcop instance. If you left
-the foreground dashboard proxy running in another terminal, stop it with Ctrl+C.
-Repeated stop is harmless. Start refuses existing resources or another instance;
-namespace/socket ownership is checked before cleanup. Failed startup rolls back
-resources it created. Build and demo setup remain separate; `trafficcop start`
-still operates on an existing interface as the grading harness requires.
+One executable contains the compiled BPF object and all web assets. The
+long-lived daemon owns the XDP link, maps, event consumer, localhost HTTP
+server and Unix control socket; short-lived CLI processes send control
+requests over a mode-0600 socket, serialized by an advisory lock. No maps are
+pinned.
 
-## CLI and behavior
+- **XDP dataplane (C)** — first-match policy, mixed-family address sets,
+  per-source limit buckets, jail and port-scan state, per-CPU counters and an
+  event ring.
+- **Control plane (Go)** — strict rules-file grammar, immutable policy
+  generations, map/link lifecycle and live commands.
+- **Observability (Go)** — a dedicated event drain retains the newest 1,000
+  decisions across reloads; snapshots are safe for concurrent CLI/HTTP use
+  and detached from mutable storage.
+
+Details, invariants and the reasoning behind each choice live in
+[architecture.md](architecture.md).
+
+## CLI
 
 Inside your dedicated network namespace:
 
 ```sh
-./trafficcop start eth0 arcade.rules hp0   # optional hp0 honeypot interface
-./trafficcop reload arcade-next.rules
-./trafficcop set add cheaters 2001:db8:bad::/48
-./trafficcop set del cheaters 10.0.0.7/32
-./trafficcop stats
-./trafficcop jail
-./trafficcop unjail 2001:db8::7
-./trafficcop log
-./trafficcop stop
+./trafficoop start eth0 demo.rules hp0   # optional hp0 honeypot interface
+./trafficoop reload demo-next.rules
+./trafficoop set add cheaters 2001:db8:bad::/48
+./trafficoop set del cheaters 10.0.0.7/32
+./trafficoop stats
+./trafficoop jail
+./trafficoop unjail 2001:db8::7
+./trafficoop log
+./trafficoop stop
 ```
 
-Rules implement every specified action/condition, mixed-family prefixes/sets,
-first-match ordering, VLAN/options/fragments and bounded IPv6 extension chains.
-Rate limits have independent 65,536-source LRU maps per rule, shared across CPUs.
-All packet decisions happen inside XDP; Go only manages configuration/state and
-observability. Each reload constructs an immutable private program/config and
-atomically updates the existing XDP link. Persistent counters, jail/cancellation
-records and log history survive; sets and per-rule counters are replaced.
-Immutable per-generation feature masks prune unused verifier paths without
-relaxing the one-second reload deadline or disabling configured rules.
+Rules implement the full action/condition set: mixed-family prefixes/sets,
+first-match ordering, VLAN/options/fragments and bounded IPv6 extension
+chains. Persistent counters, jail records and log history survive reloads;
+sets and per-rule counters are replaced. Immutable per-generation feature
+masks prune unused verifier paths without stretching the one-second reload
+budget or disabling configured rules.
 
-CLI `stats` and `/stats.json` use the same snapshot implementation. `/jail.json`
-and `/log.json` expose those same command snapshots; `/health.json` separately
-reports allocation/ring/stream failures without altering the required stats
-schema. A dedicated goroutine drains events and retains exactly the newest
-1,000 oldest-first; logged decisions are never synthesized in userspace.
-A temporary log snapshot timeout is recoverable: later requests wait for the
-outstanding flush barrier before issuing a new one. Terminal stream errors stay
-visible through diagnostics. Runtime policy files must be regular files or
-`/dev/null`, at most 16 MiB including comments; FIFOs/devices are rejected before
-opening for reads. The grammar reader remains available for in-memory tests.
-Finite state limits and target-platform gaps are documented in
+Runtime policy files must be regular files or `/dev/null`, at most 16 MiB
+including comments; FIFOs/devices are rejected before opening for reads.
+Finite state limits and platform gaps are documented in
 [integration validation](docs/integration-validation.md).
 
 ## Dashboard
@@ -125,33 +132,36 @@ Finite state limits and target-platform gaps are documented in
 The embedded dashboard is a dark, hairline-framed operations console using the
 locally bundled Monocraft pixel font (OFL; see
 `internal/observe/web/fonts/OFL.txt`). It refreshes every second from the same
-read-only endpoints as the CLI and makes no external asset requests. Maintainer
-follow-up results and target-hardware requirements:
-[remaining-work validation](docs/remaining-work-validation.md).
+read-only endpoints as the CLI and makes no external asset requests. The
+HTML, CSS, JavaScript and fonts are embedded in the Go binary and served
+under the existing CSP.
 
 - **Packet flow** — pass/drop rates from cumulative counter deltas over a
-  30-sample, one-second window. The icon toggle switches between a zero-center
-  diverging chart and stacked pass/drop bars; the choice is page-local.
-- **Rule activity** — first-match policy order, exact hits, verdict splits and a
-  compact hit bar.
+  30-sample, one-second window, with a toggle between a zero-center diverging
+  chart and stacked pass/drop bars.
+- **Rule activity** — first-match policy order, exact hits, verdict splits
+  and a compact hit bar.
 - **Noisiest sources** — the top five source addresses with normalized packet
-  bars and exact counts, separated by hairlines.
-- **Timeout corner** and **Recent events** — current jail entries with remaining
-  time and the latest 20 logged decisions, including verdict and packet fields.
-- **System telemetry** — malformed, non-IP, jail-drop, default-hit, address-set
-  and event-loss counters; `/health.json` failures raise a visible warning.
+  bars and exact counts.
+- **Timeout corner** and **Recent events** — current jail entries with
+  remaining time, and the latest 20 logged decisions with verdict and packet
+  fields.
+- **System telemetry** — malformed, non-IP, jail-drop, default-hit,
+  address-set and event-loss counters; `/health.json` failures raise a
+  visible warning.
 
-The HTML, CSS, JavaScript and fonts are embedded in the Go binary and served
-under the existing CSP. The isolated demo proxy reads them from
-`internal/observe/web/` on every request, so frontend edits appear on a browser
-refresh without rebuilding or restarting the demo.
+## Tests
 
-Actual isolated-demo capture (traffic idle at capture, so pps is zero; totals
-come from real XDP decisions on synthetic frames):
+```sh
+make test
+make integration
+make stress
+make endurance  # five-minute reload/set/maximum-policy resource check
+make throughput # four-CPU private-veth flood; not physical-NIC line rate
+make capacity   # full-map CLI timing check (exposes a million-entry jail timeout)
+```
 
-![Live Bytecode Bouncer dashboard](docs/dashboard.png)
-
-### Person A dataplane tests and handoff
+Dataplane-specific tests:
 
 ```sh
 bash bpf/test.sh                # exact short parser fixtures, ASan/UBSan
@@ -159,37 +169,39 @@ sudo bash bpf/test.sh --kernel  # actual BPF packet/state/ABI/four-CPU tests
 sudo bash bpf/netns-test.sh     # private veth wire actions/replacement under load
 ```
 
-The XDP implementation supports all rule conditions and actions, mixed-family
-sets, independent limit maps with at least 65,536 usable source entries each, jail/scans and logged decisions.
-See [ABI and B/C handoff](docs/dataplane-abi.md) and
-[actual validation/limitations](docs/dataplane-validation.md). The ABI includes
-explicit diagnostic counters for finite map capacity and event-ring failures.
+Integration/stress tests create private namespaces/veths and attempt cleanup
+on every exit. They refuse an existing daemon, and none of them replace a
+host attachment — do not attach this to a production interface without
+verifying it on the target platform first.
 
-State-map pressure now requests off-packet BPF collection instead of walking a
-full map on ingress (ABI v6; restart the daemon on upgrade). See
-[reclamation validation](docs/reclamation-validation.md) for Linux 6.8 VM results
-and the still-open four-CPU/full-capacity acceptance.
+## Validation evidence
 
-The daemon reports readiness through a pipe, owns an exclusive lock and private
-Unix socket under `/run/trafficcop`, and embeds its web assets. No BPF maps are
-pinned. Stop releases the XDP link, map/program descriptors, control socket and
-HTTP port; SIGTERM/SIGINT also clean up. SIGKILL/crash recovery beyond automatic
-FD closure is not yet a tested lifecycle guarantee. Startup diagnostics append
-to `/run/trafficcop-bootstrap.log`. The lock file remains as a harmless reusable
-inode; do not delete it while a daemon is running.
+See [integration validation](docs/integration-validation.md),
+[kernel validation](docs/dataplane-validation.md) and
+[bootstrap validation](docs/bootstrap-validation.md). Measured daemon logging:
+90,000 decisions in 3.601 s (~24,997/s), zero loss, exact last-1,000 history
+under concurrent/slow HTTP clients. These are local measurements, not a
+flood/NIC throughput ranking or a Linux 6.8 guarantee. CI runs the expanded
+smoke suite on Ubuntu 24.04; inspect its result after publishing rather than
+assuming it passed.
 
-## Contribute and raise a PR
+Developed on Ubuntu 24.04 / WSL (Linux 6.18). The full acceptance suite,
+`tests/integration/acceptance.sh`, targets a native Ubuntu 24.04 x86-64 host
+running Linux 6.8 with at least four allowed CPUs, and that run is still
+unverified — see [the implementation checklist](docs/spec-checklist.md) for
+exactly what has been measured and what hasn't.
 
-Use the three implementation issues for ownership and acceptance criteria:
+## Contributing
 
-- [Person A: XDP dataplane](https://github.com/TANKominator5/BytecodeBouncer/issues/1)
-- [Person B: control plane and reload](https://github.com/TANKominator5/BytecodeBouncer/issues/2)
-- [Person C: observability and test bench](https://github.com/TANKominator5/BytecodeBouncer/issues/3)
+PRs are welcome. The original build was tracked in three areas — dataplane,
+control plane, observability — and the
+[issue tracker](https://github.com/Anirban-Majumder/trafficoop/issues) has the
+history.
 
 ```sh
 git fetch origin
 git switch -c feat/<area> origin/main
-# implement and test your issue
+# implement your change
 ./build.sh
 make test
 sudo tests/integration/bootstrap.sh
@@ -199,26 +211,13 @@ git push -u origin feat/<area>
 gh pr create --base main --head feat/<area> --title "Concrete behavior" --body-file /tmp/pr.md
 ```
 
-In `/tmp/pr.md`, explain behavior, list checks actually run, disclose missing
-checks/limitations, call out shared ABI changes, and include `Closes #<issue>`.
-Ask the other two people to review. Keep shared-ABI changes small and agreed in
-advance. Merge green, reviewed PRs frequently; update your branch from main
-before integrating. Each person uses a separate clone/worktree and branch.
+In `/tmp/pr.md`, explain behavior, list checks actually run, and disclose
+missing checks/limitations. Keep shared-ABI changes small. Merge green,
+reviewed PRs frequently; update your branch from main before integrating.
 
-## Validation evidence
+## Project docs
 
-See [integration validation](docs/integration-validation.md),
-[kernel validation](docs/dataplane-validation.md) and historical
-[bootstrap validation](docs/bootstrap-validation.md). Measured daemon logging:
-90,000 decisions in 3.601 s (~24,997/s), zero loss, exact last-1,000 history under
-concurrent/slow HTTP clients. These are local measurements, not a flood/NIC
-throughput ranking or a Linux 6.8 guarantee. CI is configured for the expanded
-smoke suite on Ubuntu 24.04; inspect its result after publishing rather than
-assuming it passed.
-
-Target acceptance via `tests/integration/acceptance.sh` requires a native Ubuntu
-24.04 x86-64 host running Linux 6.8 with at least four allowed CPUs. It requires
-`systemd-detect-virt` to report `none` with its normal exit status (1); missing
-or failing detection, containers, virtual machines and emulation are rejected.
-Use `--local` only for explicitly non-target evidence. Target acceptance remains
-unverified; see [the specification checklist](docs/spec-checklist.md).
+- [Architecture](architecture.md) — design, invariants and decision history
+- [ABI notes](docs/dataplane-abi.md) — C ABI v6, publication and lifetime rules
+- [Implementation checklist](docs/spec-checklist.md) — feature-by-feature status
+- [Contributor instructions](AGENTS.md) — layout, ownership and workflow rules

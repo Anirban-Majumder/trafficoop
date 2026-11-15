@@ -2,8 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 [[ $EUID == 0 ]] || { echo 'run with sudo' >&2; exit 1; }
-[[ ! -e /run/trafficcop-demo && ! -e /run/netns/trafficcop-demo && ! -S /run/trafficcop/control.sock ]] || {
-  echo 'existing demo/trafficcop resources; refusing test' >&2; exit 1;
+[[ ! -e /run/trafficoop-demo && ! -e /run/netns/trafficoop-demo && ! -S /run/trafficoop/control.sock ]] || {
+  echo 'existing demo/trafficoop resources; refusing test' >&2; exit 1;
 }
 started=0; proxy=''
 cleanup() {
@@ -22,7 +22,7 @@ import json,time,urllib.request
 for attempt in range(30):
     try:
         with urllib.request.urlopen('http://127.0.0.1:8088/',timeout=1) as r:
-            assert b'Bytecode Bouncer' in r.read()
+            assert b'Trafficoop' in r.read()
         break
     except OSError:
         time.sleep(.1)
@@ -39,6 +39,6 @@ PY
 ./demo.sh stop
 started=0
 ./demo.sh stop
-[[ ! -e /run/netns/trafficcop-demo && ! -e /run/trafficcop-demo && ! -S /run/trafficcop/control.sock ]]
+[[ ! -e /run/netns/trafficoop-demo && ! -e /run/trafficoop-demo && ! -S /run/trafficoop/control.sock ]]
 if ./demo.sh stats; then echo 'stats unexpectedly succeeded after stop' >&2; exit 1; fi
 echo 'Demo integration checks passed'

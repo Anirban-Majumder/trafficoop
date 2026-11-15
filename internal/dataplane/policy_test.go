@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/asm"
 	"github.com/cilium/ebpf/btf"
@@ -98,7 +98,7 @@ func TestPolicyABI(t *testing.T) {
 			t.Fatalf("missing control-only collector %s", name)
 		}
 	}
-	for _, ins := range spec.Programs["trafficcop"].Instructions {
+	for _, ins := range spec.Programs["trafficoop"].Instructions {
 		if ins.IsBuiltinCall() && ins.Constant == int64(asm.FnForEachMapElem) {
 			t.Fatal("map sweep returned to ingress program")
 		}
@@ -222,7 +222,7 @@ func loadPolicySized(t *testing.T, config testConfig, shared map[string]*ebpf.Ma
 			t.Fatal(err)
 		}
 	}
-	for _, line := range strings.Split(c.Programs["trafficcop"].VerifierLog, "\n") {
+	for _, line := range strings.Split(c.Programs["trafficoop"].VerifierLog, "\n") {
 		if strings.HasPrefix(line, "processed ") || strings.HasPrefix(line, "verification time ") {
 			t.Log(line)
 		}
@@ -231,7 +231,7 @@ func loadPolicySized(t *testing.T, config testConfig, shared map[string]*ebpf.Ma
 }
 func runPacket(t *testing.T, c *ebpf.Collection, frame []byte, want uint32) []byte {
 	t.Helper()
-	verdict, output, err := c.Programs["trafficcop"].Test(frame)
+	verdict, output, err := c.Programs["trafficoop"].Test(frame)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -741,7 +741,7 @@ func TestKernelConcurrentAccounting(t *testing.T) {
 			defer unix.SchedSetaffinity(0, &old)
 			<-start
 			for i := 0; i < packets; i++ {
-				_, err := c.Programs["trafficcop"].Run(&ebpf.RunOptions{Data: frame, Repeat: 1})
+				_, err := c.Programs["trafficoop"].Run(&ebpf.RunOptions{Data: frame, Repeat: 1})
 				if err != nil {
 					t.Error(err)
 					return
@@ -864,7 +864,7 @@ func exactAccountingRun(t *testing.T, c *ebpf.Collection, frame []byte, repeat u
 			onReset()
 		}
 	}
-	verdict, err := c.Programs["trafficcop"].Run(&ebpf.RunOptions{Data: frame, Repeat: repeat, Reset: reset})
+	verdict, err := c.Programs["trafficoop"].Run(&ebpf.RunOptions{Data: frame, Repeat: repeat, Reset: reset})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1010,7 +1010,7 @@ func TestKernelWireAndReplacement(t *testing.T) {
 	conf := cfg(testRule{Action: bounce, Matches: 32, DportMin: 6666, DportMax: 6666, Log: 1, Line: 8}, testRule{Action: honeypot, Matches: 32, DportMin: 7777, DportMax: 7777, Log: 1, Line: 9}, testRule{Action: pass, Matches: 32, DportMin: 9999, DportMax: 9999, Log: 1, Line: 10})
 	conf.HoneypotIfindex = uint32(hp.Index)
 	c := loadPolicy(t, conf, nil)
-	l, err := link.AttachXDP(link.XDPOptions{Program: c.Programs["trafficcop"], Interface: eth.Index, Flags: link.XDPDriverMode})
+	l, err := link.AttachXDP(link.XDPOptions{Program: c.Programs["trafficoop"], Interface: eth.Index, Flags: link.XDPDriverMode})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1032,7 +1032,7 @@ func TestKernelWireAndReplacement(t *testing.T) {
 		}
 		copy(f[:6], eth.HardwareAddr)
 		copy(f[6:12], players.HardwareAddr)
-		return append(f, []byte("trafficcop-wire-test-padding-unchanged")...)
+		return append(f, []byte("trafficoop-wire-test-padding-unchanged")...)
 	}
 	var backpressure atomic.Uint64
 	send := func(fd int, frame []byte) error {
@@ -1121,7 +1121,7 @@ func TestKernelWireAndReplacement(t *testing.T) {
 		if got := ruleTotals(t, next, 0); got.Hits != 0 {
 			t.Fatal("new generation inherited rule counters")
 		}
-		if err := l.Update(next.Programs["trafficcop"]); err != nil {
+		if err := l.Update(next.Programs["trafficoop"]); err != nil {
 			t.Fatal(err)
 		}
 		if current != c {
@@ -1167,7 +1167,7 @@ func TestKernelEventBurst(t *testing.T) {
 	const packets = 20000
 	frame := ipv6("2001:db8::99", 17, udp(53))
 	start := time.Now()
-	verdict, err := c.Programs["trafficcop"].Run(&ebpf.RunOptions{Data: frame, Repeat: packets})
+	verdict, err := c.Programs["trafficoop"].Run(&ebpf.RunOptions{Data: frame, Repeat: packets})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1323,7 +1323,7 @@ func TestKernelExpiredStateReclamation(t *testing.T) {
 			// Allocation-pressure packets fail closed, request a sweep and return
 			// without walking the map. The daemon normally services this request.
 			first := ipv4(source, 17, 0, 5, udp(10))
-			verdict, _, err := c.Programs["trafficcop"].Test(first)
+			verdict, _, err := c.Programs["trafficoop"].Test(first)
 			if err != nil {
 				t.Fatal(err)
 			}

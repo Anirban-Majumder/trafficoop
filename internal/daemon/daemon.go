@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TANKominator5/BytecodeBouncer/internal/config"
-	"github.com/TANKominator5/BytecodeBouncer/internal/dataplane"
-	"github.com/TANKominator5/BytecodeBouncer/internal/observe"
+	"github.com/Anirban-Majumder/trafficoop/internal/config"
+	"github.com/Anirban-Majumder/trafficoop/internal/dataplane"
+	"github.com/Anirban-Majumder/trafficoop/internal/observe"
 	"net"
 	"net/http"
 	"net/netip"
@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const runtimeDir = "/run/trafficcop"
+const runtimeDir = "/run/trafficoop"
 
 var socketPath = filepath.Join(runtimeDir, "control.sock")
 
@@ -43,7 +43,7 @@ func CallRequest(request Request) (json.RawMessage, error) {
 	command := request.Command
 	c, err := net.DialTimeout("unix", socketPath, 500*time.Millisecond)
 	if err != nil {
-		return nil, errors.New("trafficcop is not running")
+		return nil, errors.New("trafficoop is not running")
 	}
 	defer c.Close()
 	// Allow successful work within the spec budget to return its response.
@@ -90,7 +90,7 @@ func Run(iface, rules, honeypot string, ready *os.File) (runErr error) {
 	}
 	defer lock.Close()
 	if err = syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
-		return errors.New("trafficcop already running")
+		return errors.New("trafficoop already running")
 	}
 	// Only the singleton lock owner may remove a stale socket.
 	if err = os.Remove(socketPath); err != nil && !os.IsNotExist(err) {

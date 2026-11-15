@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/config"
+	"github.com/Anirban-Majumder/trafficoop/internal/config"
 	"github.com/cilium/ebpf"
 	"golang.org/x/sys/unix"
 )

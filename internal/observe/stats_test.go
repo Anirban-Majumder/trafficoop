@@ -3,7 +3,7 @@ package observe
 import (
 	"encoding/json"
 	"errors"
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"net/netip"
 	"reflect"
 	"testing"

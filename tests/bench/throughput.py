@@ -14,7 +14,7 @@ assert 1 <= seconds <= 600
 
 def cli(*args):
     start = time.monotonic()
-    result = subprocess.run(['./trafficcop', *map(str, args)], capture_output=True, text=True, timeout=1)
+    result = subprocess.run(['./trafficoop', *map(str, args)], capture_output=True, text=True, timeout=1)
     assert result.returncode == 0 and not result.stderr, (args, result.stderr)
     assert time.monotonic() - start < 1
     return json.loads(result.stdout) if result.stdout else None

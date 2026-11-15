@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 )
 
 func TestCompleteGrammar(t *testing.T) {

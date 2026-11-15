@@ -7,7 +7,7 @@ import (
 	"net/netip"
 	"sort"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 )
 
 type Stats = contract.Stats

@@ -10,15 +10,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/config"
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/config"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
 	"golang.org/x/sys/unix"
 )
 
-//go:embed trafficcop.bpf.o
+//go:embed trafficoop.bpf.o
 var object []byte
 
 type Counters = contract.Counters
@@ -75,7 +75,7 @@ func AttachPolicy(ifname, hpname string, policy *config.Policy) (*Plane, error) 
 	if err != nil {
 		return nil, err
 	}
-	l, err := link.AttachXDP(link.XDPOptions{Program: c.Programs["trafficcop"], Interface: iface.Index, Flags: link.XDPDriverMode})
+	l, err := link.AttachXDP(link.XDPOptions{Program: c.Programs["trafficoop"], Interface: iface.Index, Flags: link.XDPDriverMode})
 	if err != nil {
 		c.Close()
 		return nil, fmt.Errorf("attach native XDP: %w", err)
@@ -249,7 +249,7 @@ func (p *Plane) Reload(policy *config.Policy) error {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if err := p.attachment.Update(next.Programs["trafficcop"]); err != nil {
+	if err := p.attachment.Update(next.Programs["trafficoop"]); err != nil {
 		next.Close()
 		return fmt.Errorf("publish XDP policy: %w", err)
 	}

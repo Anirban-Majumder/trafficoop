@@ -22,7 +22,7 @@ assert 1 <= reloads <= 10000 and 0 <= minimum_seconds <= 3600 and 1 <= limit_rel
 
 def cli(*args, ok=True):
     start = time.monotonic()
-    r = subprocess.run(['./trafficcop', *map(str, args)], capture_output=True, text=True, timeout=1)
+    r = subprocess.run(['./trafficoop', *map(str, args)], capture_output=True, text=True, timeout=1)
     elapsed = time.monotonic() - start
     assert elapsed < 1, (args, elapsed)
     if ok:
@@ -145,7 +145,7 @@ new.write_text('default drop\nset new 2001:db8:eeee::/48\nset live\ndrop src @li
 invalid.write_text('drop proto invalid\n')
 cli('reload', old)
 with socket.socket(socket.AF_UNIX) as control:
-    control.connect('/run/trafficcop/control.sock')
+    control.connect('/run/trafficoop/control.sock')
     daemon_pid = struct.unpack('3i', control.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))[0]
 fd_baseline = len(list(Path(f'/proc/{daemon_pid}/fd').iterdir()))
 def rss_kb():

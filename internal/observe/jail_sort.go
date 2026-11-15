@@ -3,7 +3,7 @@ package observe
 import (
 	"slices"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 )
 
 // orderJails sorts our private copy numerically (IPv4 before IPv6). Large maps

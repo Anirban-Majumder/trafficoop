@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/contract"
+	"github.com/Anirban-Majumder/trafficoop/internal/contract"
 	"golang.org/x/sys/unix"
 )
 

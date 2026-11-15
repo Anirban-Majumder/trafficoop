@@ -1,5 +1,5 @@
-#ifndef TRAFFICCOP_CONTRACT_H
-#define TRAFFICCOP_CONTRACT_H
+#ifndef TRAFFICOOP_CONTRACT_H
+#define TRAFFICOOP_CONTRACT_H
 #include <linux/types.h>
 #include <linux/bpf.h>
 #define TC_ABI_VERSION 6

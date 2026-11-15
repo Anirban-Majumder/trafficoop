@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TANKominator5/BytecodeBouncer/internal/config"
-	"github.com/TANKominator5/BytecodeBouncer/internal/daemon"
+	"github.com/Anirban-Majumder/trafficoop/internal/config"
+	"github.com/Anirban-Majumder/trafficoop/internal/daemon"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 }
 func run(args []string) error {
 	if len(args) == 0 {
-		return errors.New("usage: trafficcop start <ifname> <rulesfile> [honeypot] | reload <rulesfile> | stats | stop | set add|del <set> <prefix> | jail | unjail <address> | log")
+		return errors.New("usage: trafficoop start <ifname> <rulesfile> [honeypot] | reload <rulesfile> | stats | stop | set add|del <set> <prefix> | jail | unjail <address> | log")
 	}
 	switch args[0] {
 	case "__daemon":
@@ -37,7 +37,7 @@ func run(args []string) error {
 		return daemon.Run(args[1], args[2], args[3], ready)
 	case "start":
 		if len(args) != 3 && len(args) != 4 {
-			return errors.New("usage: trafficcop start <ifname> <rulesfile> [honeypot]")
+			return errors.New("usage: trafficoop start <ifname> <rulesfile> [honeypot]")
 		}
 		if os.Geteuid() != 0 {
 			return errors.New("start requires root")
@@ -84,7 +84,7 @@ func command(args []string) (daemon.Request, bool, error) {
 		jsonOutput = args[0] != "stop"
 	case "reload":
 		if len(args) != 2 {
-			return r, false, errors.New("usage: trafficcop reload <rulesfile>")
+			return r, false, errors.New("usage: trafficoop reload <rulesfile>")
 		}
 		path, err := filepath.Abs(args[1])
 		if err != nil {
@@ -93,7 +93,7 @@ func command(args []string) (daemon.Request, bool, error) {
 		r.Path = path
 	case "set":
 		if len(args) != 4 || (args[1] != "add" && args[1] != "del") {
-			return r, false, errors.New("usage: trafficcop set add|del <set> <prefix>")
+			return r, false, errors.New("usage: trafficoop set add|del <set> <prefix>")
 		}
 		prefix, err := config.Prefix(args[3])
 		if err != nil {
@@ -104,7 +104,7 @@ func command(args []string) (daemon.Request, bool, error) {
 		r.Prefix = prefix.String()
 	case "unjail":
 		if len(args) != 2 {
-			return r, false, errors.New("usage: trafficcop unjail <address>")
+			return r, false, errors.New("usage: trafficoop unjail <address>")
 		}
 		a, err := netip.ParseAddr(args[1])
 		if err != nil || a.Zone() != "" {
@@ -129,7 +129,7 @@ func start(iface, path, hp string) error {
 	cmd := exec.Command(executable, "__daemon", iface, path, hp)
 	cmd.ExtraFiles = []*os.File{write}
 	cmd.SysProcAttr = &syscallAttributes
-	log, err := os.OpenFile("/run/trafficcop-bootstrap.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	log, err := os.OpenFile("/run/trafficoop-bootstrap.log", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		write.Close()
 		return err
@@ -147,7 +147,7 @@ func start(iface, path, hp string) error {
 		if s.Scan() {
 			result <- s.Text()
 		} else {
-			result <- "daemon exited before readiness; see /run/trafficcop-bootstrap.log"
+			result <- "daemon exited before readiness; see /run/trafficoop-bootstrap.log"
 		}
 	}()
 	select {

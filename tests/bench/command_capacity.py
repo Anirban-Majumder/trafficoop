@@ -19,7 +19,7 @@ failures=[]
 for args in cases:
     start=time.monotonic()
     try:
-        r=subprocess.run(['./trafficcop',*args],capture_output=True,text=True,timeout=4)
+        r=subprocess.run(['./trafficoop',*args],capture_output=True,text=True,timeout=4)
         elapsed=time.monotonic()-start
         value=json.loads(r.stdout) if r.returncode==0 and r.stdout else None
         correct=r.returncode==0 and not r.stderr
