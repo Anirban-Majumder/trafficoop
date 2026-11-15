@@ -1,5 +1,6 @@
-// Package contract is the shared A/B/C boundary. Binary layouts mirror
-// include/contract.h; JSON types follow problem_Statement.md. Coordinate changes.
+// Package contract is the shared binary/JSON boundary. Binary layouts mirror
+// include/contract.h; JSON types follow the public CLI/HTTP schema. Coordinate
+// changes.
 package contract
 
 const (

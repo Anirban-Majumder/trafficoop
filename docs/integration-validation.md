@@ -2,7 +2,7 @@
 
 ## CI reload regression — 11 November 2026
 
-Both attempts of [run 42865136788](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/42865136788)
+Both attempts of [run 42865136788](https://github.com/Anirban-Majumder/trafficoop/actions/runs/42865136788)
 failed in `firewall.py` on the first successful reload: the CLI exceeded its
 970 ms IPC deadline. The same fixture passed on WSL, so rerunning alone was not
 a fix. The command deadline and sub-one-second bench assertions are unchanged.
@@ -56,7 +56,7 @@ runtime, fresh-machine build and a final flood speed benchmark remain unverified
   No separate Go/BPF JSON schemas, frontend services or userspace packet verdicts.
 
 This work is published for review in PR #6.
-Shared API/build/pipeline changes need normal teammate review before merge.
+Shared API/build/pipeline changes need normal code review before merge.
 
 ## Checks exercised
 

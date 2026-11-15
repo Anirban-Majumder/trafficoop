@@ -8,8 +8,8 @@ runtime dependency. BPF stays in one compilation unit with focused headers.
 
 The long-lived daemon owns the XDP link, maps, event consumer, localhost HTTP
 server, and Unix control socket. Short-lived CLI processes send control requests.
-Only the network namespace changes under the harness, so `/run/trafficcop` is a
-host-wide singleton. The socket is mode 0600; an advisory lock serializes startup.
+Only the network namespace changes under the test bench, so `/run/trafficoop`
+is a host-wide singleton. The socket is mode 0600; an advisory lock serializes startup.
 No maps need pinning while the daemon owns their descriptors. If future recovery
 requires pins, use only an owned subtree and clean it on every failure/stop.
 
@@ -49,8 +49,7 @@ logging use a common verdict-finalization path so each packet is counted once.
 network-order address bytes. Reserved bytes must be zero. Use fixed-width types,
 explicit padding, C static assertions and Go ELF/layout tests. Rule indices and
 original file line numbers are separate concepts. ABI v6 and its integration
-protocol are documented in [docs/dataplane-abi.md](docs/dataplane-abi.md). The task
-owner authorized this shared change; B/C review remains required before merge.
+protocol are documented in [docs/dataplane-abi.md](docs/dataplane-abi.md).
 
 ## Reload publication
 Each immutable config map belongs to one loaded program generation. Build and
@@ -97,7 +96,7 @@ references. Publish one selector only after all candidate objects are ready.
 reuse, establish a kernel-supported lifetime/quiescence mechanism and stress it
 with repeated reloads on all CPUs. Retaining old objects temporarily is useful
 for a prototype but is not an unbounded production strategy. Record the actual
-chosen mechanism and tests here in the control-plane PR.
+chosen mechanism and tests here.
 
 Never detach during reload. Invalid candidates preserve all active state. After
 success returns, every new packet sees the candidate. Serialize reload and live
@@ -130,19 +129,21 @@ that hangs until another packet. Reader Close unblocks shutdown. End-to-end
 `docs/integration-validation.md`. `/health.json` exposes events_read, ring loss,
 map allocation failures and terminal stream errors separately from stats.
 
-## Integration and ownership
-A owns bpf/. B owns CLI/config/dataplane/daemon. C owns observe/web/integration
-bench. Each owner tests their features. Coordinate ABI/build changes first,
-merge small PRs frequently, and reserve the last day for target-platform tests,
-performance, cleanup, documentation and dashboard screenshot.
+## Ownership
+
+`bpf/` is the dataplane. `cmd/`, `internal/config/`, `internal/dataplane/` and
+`internal/daemon/` are the control plane. `internal/observe/` and `tests/` are
+observability and the integration bench. Coordinate ABI/build/architecture
+changes before editing them, keep PRs small, and keep the documentation and
+validation evidence current with the code.
 
 ## Open clarifications
-The PDF's early IPv4-only wording is extended by its later IPv6 section. Treat
-IPv6 as supported everywhere, including an unconditional rule, and ask organizers
-if possible. Event saturation, source-count capacity and reload reclamation
-need explicit limits/tests. No model-proposed memory or throughput estimate is
-a measured result. The target remains Ubuntu 24.04, Linux 6.8, x86-64, 4 CPUs;
-ARM64-host testing does not replace that validation.
+The original specification's early IPv4-only wording is extended by its later
+IPv6 section. Treat IPv6 as supported everywhere, including an unconditional
+rule. Event saturation, source-count capacity and reload reclamation need
+explicit limits/tests. No model-proposed memory or throughput estimate is a
+measured result. The development target remains Ubuntu 24.04, Linux 6.8,
+x86-64, 4 CPUs; ARM64-host testing does not replace that validation.
 
 ## Expired-state recovery
 

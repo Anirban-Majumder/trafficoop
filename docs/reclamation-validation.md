@@ -108,7 +108,7 @@ callback-state fixed point bounded; the actual 6.8 kernel suite verifies it.
 Final runs use the unmodified pinned cilium/ebpf dependency, not the temporary
 diagnostic copy used to expose the verifier log.
 
-Logs remain on the VM at `/root/trafficcop-gc-20261112/evidence/`.
+Logs remain on the VM at `/root/trafficoop-gc-20261112/evidence/`.
 
 ## Not complete
 

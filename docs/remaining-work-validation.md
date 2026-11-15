@@ -5,7 +5,7 @@ below are measured, not a claim that the open issues can all be closed.
 
 ## A: exact-accounting CI regression
 
-Main run [42926807664](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/42926807664)
+Main run [42926807664](https://github.com/Anirban-Majumder/trafficoop/actions/runs/42926807664)
 reported 100,001 honeypot decisions for a requested 100,000-repetition test run.
 `BPF_PROG_TEST_RUN` can return EINTR after executing part of a burst. cilium/ebpf
 v0.17.3 retries the entire count and provides `RunOptions.Reset` specifically for
@@ -48,7 +48,7 @@ these results do not establish a wire-rate guarantee under exhausted state.
 
 ## B/C: full snapshots, maximum reloads and object reclamation
 
-The A fix has a green [follow-up CI run](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43029915302).
+The A fix has a green [follow-up CI run](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43029915302).
 The B follow-up includes that fix as an explicit dependency, plus cross-owner C
 stats aggregation and shared Makefile/bench changes. No kernel ABI change.
 
@@ -163,15 +163,15 @@ it does not bypass failing tests. Only a fully passing suite writes `result.txt`
 
 Seven consecutive runs failed in the dependency step, before build or tests:
 
-- [43034289287](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43034289287),
-  [43036721534](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43036721534),
-  [43038204018](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43038204018),
-  and [43038203964](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43038203964)
+- [43034289287](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43034289287),
+  [43036721534](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43036721534),
+  [43038204018](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43038204018),
+  and [43038203964](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43038203964)
   reported `Temporary failure resolving 'archive.ubuntu.com'` /
   `'security.ubuntu.com'` (the last two on a re-run attempt).
-- [43041755241](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43041755241),
-  [43041754651](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43041754651)
-  and [43041754711](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43041754711)
+- [43041755241](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43041755241),
+  [43041754651](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43041754651)
+  and [43041754711](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43041754711)
   failed the same way after switching the runner mirror file to canonical
   `archive.ubuntu.com`/`security.ubuntu.com`.
 
@@ -191,16 +191,16 @@ same-branch runs. Build, race/vet, unit and all integration/kernel steps remain
 unchanged and enabled. The first attempt (`archive.ubuntu.com`) is superseded, not
 retained as a fallback that would reproduce the outage.
 
-Validated on C first: [43084644782](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43084644782)
+Validated on C first: [43084644782](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43084644782)
 passed every step, including dependency install, build, `make test`, bootstrap,
 demo, firewall, lifecycle and the privileged kernel suite. The identical workflow
 was then applied to A and B, and all three branches passed:
 
 | Branch | Run |
 | --- | --- |
-| `fix/dataplane-acceptance` (A) | [43085088325](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43085088325) |
-| `feat/control-plane-acceptance` (B) | [43085154194](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43085154194) |
-| `feat/verification-acceptance` (C) | [43085221084](https://github.com/TANKominator5/BytecodeBouncer/actions/runs/43085221084) |
+| `fix/dataplane-acceptance` (A) | [43085088325](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43085088325) |
+| `feat/control-plane-acceptance` (B) | [43085154194](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43085154194) |
+| `feat/verification-acceptance` (C) | [43085221084](https://github.com/Anirban-Majumder/trafficoop/actions/runs/43085221084) |
 
 `main` remains red only until one of these is merged; its recorded failure is the
 exact-accounting regression fixed on A. The mirror line is CI infrastructure, not

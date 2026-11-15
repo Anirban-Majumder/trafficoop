@@ -1,7 +1,8 @@
-# BytecodeBouncer contributor instructions
+# trafficoop contributor instructions
 
 ## Goal and scope
-Build the trafficcop firewall defined in [problem_Statement.md](problem_Statement.md).
+Build the trafficoop firewall described in [architecture.md](architecture.md)
+and [docs/spec-checklist.md](docs/spec-checklist.md).
 Read [architecture.md](architecture.md) and [docs/spec-checklist.md](docs/spec-checklist.md)
 before implementation. The complete CLI/kernel/telemetry path is integrated;
 target-platform and worst-case acceptance gaps remain in the validation docs.
@@ -53,7 +54,7 @@ Do not silently accept configuration that the dataplane does not enforce.
 
 ## Workflow and verification
 - Branch from current origin/main, one branch per issue. No direct main pushes
-  after bootstrap. Do not commit generated ELF files or the trafficcop binary.
+  after bootstrap. Do not commit generated ELF files or the trafficoop binary.
 - Run `./build.sh`, `make test`, and `sudo tests/integration/bootstrap.sh`.
   Add feature-specific tests. Report unavailable privileged checks honestly.
 - Keep CLI stdout valid JSON where required; errors are one stderr line, exit 1.

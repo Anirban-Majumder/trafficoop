@@ -1,10 +1,10 @@
 # Specification checklist
 
-Checked items are exercised locally, not a claim of Linux 6.8 or hidden-harness
-acceptance. See [integration validation](integration-validation.md) and
+Checked items are exercised locally, not a claim of native Linux 6.8
+target-platform acceptance. See [integration validation](integration-validation.md) and
 [dataplane validation](dataplane-validation.md).
 
-- [x] Build a self-contained ./trafficcop with embedded BPF/web assets.
+- [x] Build a self-contained ./trafficoop with embedded BPF/web assets.
 - [x] Native XDP attach in isolated veth namespace, start readiness, stop cleanup.
 - [x] Singleton lock, private CLI socket, failed-start resource cleanup.
 - [x] Per-CPU packet counters, shared stats JSON and live dashboard.

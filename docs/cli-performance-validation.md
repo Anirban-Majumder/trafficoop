@@ -67,7 +67,7 @@ go test ./internal/daemon -run '^$' -bench BenchmarkResponse -benchtime=1x -coun
 ```
 
 All above passed on the VM. CPU profiles, benchmark output, unit/kernel logs and
-refusal logs remain in `/root/trafficcop-issues-20261112/evidence/` on that VM.
+refusal logs remain in `/root/trafficoop-issues-20261112/evidence/` on that VM.
 No source packet verdict or binary kernel layout changed (ABI v5 unchanged).
 Changes cross B/C ownership: CLI, daemon private IPC and observe aggregation.
 

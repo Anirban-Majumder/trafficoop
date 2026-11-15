@@ -1,12 +1,11 @@
-# Person A dataplane handoff (ABI v6)
+# Dataplane ABI notes (ABI v6)
 
-`include/contract.h` is the authoritative layout. Shared changes were authorized
-by the task owner; B/C review is still required before merge. A also adds kernel
-fixtures in `internal/dataplane/policy_test.go` and the header dependency in
-`Makefile`. B/C now integrate the runtime in their respective ownership areas;
-see [integration evidence](integration-validation.md) for current behavior.
+`include/contract.h` is the authoritative layout. Kernel fixtures live in
+`internal/dataplane/policy_test.go` and the header dependency in
+`Makefile`. The runtime is integrated end to end; see
+[integration evidence](integration-validation.md) for current behavior.
 
-## Publication and lifetime (Person B)
+## Publication and lifetime
 
 Build **a new XDP program and private config map for each generation**. Populate
 `config[0]` completely, validate every field, freeze that map with `Map.Freeze`,
@@ -113,7 +112,7 @@ with no reclaimable entry drops the current packet without incrementing jailed. 
 not spec-compliant success**: B/C should surface them prominently (and start must
 fail if required map allocation fails). Packet decisions still remain in XDP.
 
-## Accounting/events (Person C)
+## Accounting/events
 
 Every frame returns through `finish`: exactly one passed/dropped/bounced/
 honeypotted increment. Other and malformed are subsets; jailed includes only
@@ -175,7 +174,7 @@ installed jail. Scan threshold decisions retain their pending original deadline.
 No admission/line-rate guarantee at exhaustion is claimed. See
 [Linux 6.8 VM pressure evidence](reclamation-validation.md).
 
-## Atomic unjail command (Person B)
+## Atomic unjail command
 
 Serialize control requests in the daemon. Write `unjail_request[0]` with the
 32-byte `tc_unjail_request` (24-byte address, uint32 result/reserved both zero),

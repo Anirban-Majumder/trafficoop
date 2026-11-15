@@ -1,8 +1,8 @@
-# Person A validation — 10 November 2026
+# Kernel dataplane validation — 10 November 2026
 
 Environment: Ubuntu 24.04.3 under WSL2, x86-64, Linux
 `6.18.54.1-microsoft-standard-WSL2`, Clang 18.1.3, Go 1.22.2. This is **not**
-the judges' Linux 6.8 kernel. Dependencies were installed with the packages in
+a native Linux 6.8 kernel. Dependencies were installed with the packages in
 `build.sh`. Windows checkout CRLFs in existing shell scripts were normalized
 locally to run them; no semantic script changes were needed.
 
@@ -106,9 +106,9 @@ and resource-exhaustion recovery have not been measured.
 - Explicit handling/reporting of finite map capacity and event-ring saturation.
   Expired jail/scan entries now have on-pressure reclamation; cumulative source
   identities are not garbage-collected online. The bootstrap
-  stats schema does not expose `health` yet; B/C must not hide these diagnostics.
-- Hidden-harness testing, full-capacity source/jail/scan memory measurements and
-  complete dashboard/README screenshot remain unverified.
+  stats schema does not expose `health` yet; these diagnostics must stay visible.
+- Hidden-harness compatibility testing, full-capacity source/jail/scan memory
+  measurements and a complete dashboard/README screenshot remain unverified.
 
 No production CLI filtering/reload or complete-firewall acceptance is claimed.
 
